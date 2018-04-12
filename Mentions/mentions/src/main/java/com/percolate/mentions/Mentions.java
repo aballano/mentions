@@ -239,7 +239,7 @@ public class Mentions {
      * @param query     String      A valid query.
      */
     public void queryReceived(final String query) {
-        if (queryListener != null && StringUtils.isNotBlank(query)) {
+        if (queryListener != null) {
             queryListener.onQueryReceived(query);
         } else {
             suggestionsListener.displaySuggestions(false);
