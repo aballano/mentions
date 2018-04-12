@@ -54,8 +54,8 @@ class MentionCheckerLogic {
 
             // check search text is within <code>maxCharacters</code> and begins with a
             // alpha numeric char.
-            if (searchIsWithinMaxChars(providedSearchText, maxCharacters)
-                    && searchBeginsWithAlphaNumericChar(providedSearchText)) {
+            if (providedSearchText.isEmpty() || (searchIsWithinMaxChars(providedSearchText, maxCharacters)
+                    && searchBeginsWithAlphaNumericChar(providedSearchText))) {
 
                 final int atSymbolPosition = StringUtils.lastIndexOf(allTextBeforeCursor, "@");
 
