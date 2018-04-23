@@ -43,8 +43,8 @@ class MentionCheckerLogic {
      *
      * @return String   A valid query that satisfies the three rules above.
      */
-    String doMentionCheck() {
-        String queryToken = "";
+    MentionQuery doMentionCheck() {
+        MentionQuery queryToken = NoQuery.INSTANCE;
 
         // perform a search if the {@link EditText} has an '@' symbol.
         if (StringUtils.contains(editText.getText(), "@")) {
@@ -52,19 +52,22 @@ class MentionCheckerLogic {
             final String allTextBeforeCursor = editText.getText().toString().substring(0, cursorPosition);
             final String providedSearchText = StringUtils.substringAfterLast(allTextBeforeCursor, "@");
 
+            if (providedSearchText.isEmpty()){
+                return EmptyQuery.INSTANCE;
+            }
             // check search text is within <code>maxCharacters</code> and begins with a
             // alpha numeric char.
-            if (providedSearchText.isEmpty() || (searchIsWithinMaxChars(providedSearchText, maxCharacters)
-                    && searchBeginsWithAlphaNumericChar(providedSearchText))) {
+            if (searchIsWithinMaxChars(providedSearchText, maxCharacters) && searchBeginsWithAlphaNumericChar(providedSearchText)) {
 
                 final int atSymbolPosition = StringUtils.lastIndexOf(allTextBeforeCursor, "@");
 
                 // check if search text is first in the view or has a space beforehand if there are
                 // more characters in the view.
-                if (atSymbolPosition == 0
-                        || spaceBeforeAtSymbol(allTextBeforeCursor, atSymbolPosition)) {
-                    queryToken = providedSearchText;
+                if (atSymbolPosition == 0 || spaceBeforeAtSymbol(allTextBeforeCursor, atSymbolPosition)) {
+                    queryToken = new ValidQuery(providedSearchText);
                 }
+            } else {
+                return InvalidQuery.INSTANCE;
             }
         }
 
@@ -84,9 +87,7 @@ class MentionCheckerLogic {
     private boolean spaceBeforeAtSymbol(final String currentTextBeforeCursor, final int atSymbolPosition) {
         if (atSymbolPosition > 0) {
             final char charBeforeAtSymbol = currentTextBeforeCursor.charAt(atSymbolPosition - 1);
-            if (Character.isWhitespace(charBeforeAtSymbol)) {
-                return true;
-            }
+            return Character.isWhitespace(charBeforeAtSymbol);
         }
         return false;
     }
@@ -129,9 +130,7 @@ class MentionCheckerLogic {
             if (editText.length() >= start) {
                 String text = editText.getText().toString().substring(0, start);
                 text = StringUtils.substringAfterLast(text, " ");
-                if (StringUtils.startsWith(text, "@")) {
-                    return true;
-                }
+                return text.equals("") || StringUtils.startsWith(text, "@");
             }
         }
         return false;
