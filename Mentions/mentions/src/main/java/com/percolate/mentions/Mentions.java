@@ -186,7 +186,7 @@ public class Mentions {
             @Override
             public void onClick(View view) {
                 if (mentionCheckerLogic.currentWordStartsWithAtSign()) {
-                    String query = mentionCheckerLogic.doMentionCheck();
+                    MentionQuery query = mentionCheckerLogic.doMentionCheck();
                     queryReceived(query);
                 } else {
                     suggestionsListener.displaySuggestions(false);
@@ -214,7 +214,7 @@ public class Mentions {
 
             @Override
             public void afterTextChanged(Editable s) {
-                String query = mentionCheckerLogic.doMentionCheck();
+                MentionQuery query = mentionCheckerLogic.doMentionCheck();
                 queryReceived(query);
             }
         });
@@ -238,7 +238,7 @@ public class Mentions {
      *
      * @param query     String      A valid query.
      */
-    public void queryReceived(final String query) {
+    public void queryReceived(final MentionQuery query) {
         if (queryListener != null) {
             queryListener.onQueryReceived(query);
         } else {
