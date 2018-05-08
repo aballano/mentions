@@ -73,8 +73,9 @@ class MentionsTest {
                 .build()
 
         //Test and verify whether onQueryReceived was called.
-        mentionsLib.queryReceived("Doug Tabuchi")
-        verify(mentionsLib.queryListener).onQueryReceived(anyString())
+        val query = ValidQuery("Doug Tabuchi")
+        mentionsLib.queryReceived(query)
+        verify(mentionsLib.queryListener).onQueryReceived(query)
 
         //Test and verify whether displaySuggestions was called.
         mentionsLib.queryReceived(null)

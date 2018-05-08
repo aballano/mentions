@@ -1,6 +1,7 @@
 package com.percolate.mentions
 
 import android.widget.EditText
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -13,7 +14,7 @@ import org.robolectric.annotation.Config
  * Test whether a search is valid or not by the rules defined in [MentionCheckerLogic].
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(constants = BuildConfig::class, sdk = intArrayOf(23))
+@Config(constants = BuildConfig::class, sdk = [23])
 class MentionCheckerLogicTest {
 
     /**
@@ -46,22 +47,22 @@ class MentionCheckerLogicTest {
         // 1 character (Pass within char limit)
         MentionTestUtils.setTextAndSelection(editText, "Hello @B")
         val query1 = mentionCheckerLogic.doMentionCheck()
-        assertTrue("Query is invalid.", query1 == "B")
+        assertTrue("Query is invalid.", query1 is ValidQuery && query1.query == "B")
 
         // 2 characters (Pass within char limit)
         MentionTestUtils.setTextAndSelection(editText, "Hello @Br")
         val query2 = mentionCheckerLogic.doMentionCheck()
-        assertTrue("Query is invalid.", query2 == "Br")
+        assertTrue("Query is invalid.", query2 is ValidQuery && query2.query == "Br")
 
         // 3 characters (Pass within char limit)
         MentionTestUtils.setTextAndSelection(editText, "Hello @Bre")
         val query3 = mentionCheckerLogic.doMentionCheck()
-        assertTrue("Query is invalid.", query3 == "Bre")
+        assertTrue("Query is invalid.", query3 is ValidQuery && query3.query == "Bre")
 
         // 4 characters (Fail out of char limit)
         MentionTestUtils.setTextAndSelection(editText, "Hello @Bren")
         val query4 = mentionCheckerLogic.doMentionCheck()
-        assertTrue("Query is invalid.", query4.isEmpty())
+        assertTrue("Query is invalid.", query4 is InvalidQuery)
     }
 
     /**
@@ -73,7 +74,7 @@ class MentionCheckerLogicTest {
     fun checkSearchFailsOnEmail() {
         MentionTestUtils.setTextAndSelection(editText, "hello@percolate.com")
         val query = mentionCheckerLogic.doMentionCheck()
-        assertTrue("An email is being considered as a mention.", query.isEmpty())
+        assertTrue("An email is being considered as a mention.", query is InvalidQuery)
     }
 
     /**
@@ -83,7 +84,7 @@ class MentionCheckerLogicTest {
     fun checkSearchFailsOnSymbols() {
         MentionTestUtils.setTextAndSelection(editText, "@!Brent W")
         val query = mentionCheckerLogic.doMentionCheck()
-        assertTrue("A search beginning with an non alphanumeric character was valid.", query.isEmpty())
+        assertTrue("A search beginning with an non alphanumeric character was valid.", query is InvalidQuery)
     }
 
     /**
@@ -93,7 +94,7 @@ class MentionCheckerLogicTest {
     fun checkSearchFailsOnDoubleAt() {
         MentionTestUtils.setTextAndSelection(editText, "@@")
         val query = mentionCheckerLogic.doMentionCheck()
-        assertTrue("Double @@ symbol was valid.", query.isEmpty())
+        assertThat(query).isEqualTo(InvalidQuery)
     }
 
     /**
@@ -103,7 +104,7 @@ class MentionCheckerLogicTest {
     fun checkSearchFailsOnBlankString() {
         MentionTestUtils.setTextAndSelection(editText, "")
         val query = mentionCheckerLogic.doMentionCheck()
-        assertTrue("A blank search returned a query.", query.isEmpty())
+        assertThat(query).isEqualTo(NoQuery)
     }
 
     /**
@@ -113,7 +114,7 @@ class MentionCheckerLogicTest {
     fun checkSearchFailsOnNull() {
         MentionTestUtils.setTextAndSelection(editText, null)
         val query = mentionCheckerLogic.doMentionCheck()
-        assertTrue("A null search returned a query.", query.isEmpty())
+        assertTrue("A null search returned a query.", query is NoQuery)
     }
 
     /**
@@ -123,7 +124,7 @@ class MentionCheckerLogicTest {
     fun checkSearchPassesOnAlphaNumeric() {
         MentionTestUtils.setTextAndSelection(editText, "@Brent Watson")
         val query = mentionCheckerLogic.doMentionCheck()
-        assertTrue("Search beginning with alpha numeric character failed.", !query.isEmpty())
+        assertTrue("Search beginning with alpha numeric character failed.", query is ValidQuery && query.query == "Brent Watson")
     }
 
 }

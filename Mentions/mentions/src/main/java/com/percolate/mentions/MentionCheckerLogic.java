@@ -9,9 +9,9 @@ class MentionCheckerLogic {
 
     private final EditText editText;
 
-    /* Default limit of 13 characters to evaluate after the '@' symbol. */
+    /* Default limit of 100 characters to evaluate after the '@' symbol. */
     @SuppressWarnings("WeakerAccess")
-    protected int maxCharacters = 13;
+    protected int maxCharacters = 100;
 
     MentionCheckerLogic(final EditText editText) {
         this.editText = editText;
@@ -20,15 +20,15 @@ class MentionCheckerLogic {
     /**
      * A user may type an '@' and keep typing words without choosing a mention. This method is used
      * to prevent evaluating all the characters after @ for valid mentions. A default limit of
-     * 13 character is set. However, you could configure it to any number of characters.
+     * 100 character is set. However, you could configure it to any number of characters.
      *
      * @param maxCharacters int     The maximum number of characters to considered after the
-     *                      '@' symbol as a query. The default is 13 characters.
+     *                      '@' symbol as a query. The default is 100 characters.
      */
     void setMaxCharacters(final int maxCharacters) {
         if (maxCharacters <= 0) {
             throw new IllegalArgumentException("Maximum number of characters must be greater " +
-                                               "than 0.");
+                    "than 0.");
         }
         this.maxCharacters = maxCharacters;
     }
@@ -52,20 +52,22 @@ class MentionCheckerLogic {
             final String allTextBeforeCursor = editText.getText().toString().substring(0, cursorPosition);
             final String providedSearchText = StringUtils.substringAfterLast(allTextBeforeCursor, "@");
 
-            if (providedSearchText.isEmpty()){
+            // check if search text is first in the view or has a space beforehand if there are
+            // more characters in the view.
+            final int atSymbolPosition = StringUtils.lastIndexOf(allTextBeforeCursor, "@");
+            if (atSymbolPosition != 0 && !spaceBeforeAtSymbol(allTextBeforeCursor, atSymbolPosition)) {
+                return InvalidQuery.INSTANCE;
+            }
+
+            if (providedSearchText.isEmpty()) {
                 return EmptyQuery.INSTANCE;
             }
             // check search text is within <code>maxCharacters</code> and begins with a
             // alpha numeric char.
-            if (searchIsWithinMaxChars(providedSearchText, maxCharacters) && searchBeginsWithAlphaNumericChar(providedSearchText)) {
+            if (searchIsWithinMaxChars(providedSearchText, maxCharacters)
+                    && searchBeginsWithAlphaNumericChar(providedSearchText)) {
 
-                final int atSymbolPosition = StringUtils.lastIndexOf(allTextBeforeCursor, "@");
-
-                // check if search text is first in the view or has a space beforehand if there are
-                // more characters in the view.
-                if (atSymbolPosition == 0 || spaceBeforeAtSymbol(allTextBeforeCursor, atSymbolPosition)) {
-                    queryToken = new ValidQuery(providedSearchText);
-                }
+                queryToken = new ValidQuery(providedSearchText);
             } else {
                 return InvalidQuery.INSTANCE;
             }
@@ -97,7 +99,7 @@ class MentionCheckerLogic {
      *
      * @param providedSearchText String  The text after the '@' symbol entered by the user.
      * @param maxCharacters      int     The maximum number of characters that should be used
-     *                           as a search query. The default is 13 characters, but this
+     *                           as a search query. The default is 100 characters, but this
      *                           value is configurable.
      * @return true or false
      */
